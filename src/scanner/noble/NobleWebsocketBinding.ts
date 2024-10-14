@@ -47,7 +47,7 @@ type WsEvent = {
 }
 
 export class NobleWebsocketBinding extends EventEmitter {
-  private ws: ReconnectingWebSocket[];
+    private ws: ReconnectingWebSocket[] = new Array();
   private auth: boolean;
   private wasReady: boolean;
   private buffer: any[];
