@@ -47,7 +47,7 @@ type WsEvent = {
 }
 
 export class NobleWebsocketBinding extends EventEmitter {
-  private ws: ReconnectingWebSocket;
+  private ws: ReconnectingWebSocket[];
   private auth: boolean;
   private wasReady: boolean;
   private buffer: any[];
@@ -67,24 +67,40 @@ export class NobleWebsocketBinding extends EventEmitter {
     this.startScanCommand = null;
     this.peripherals = new Map();
 
-    this.ws = new ReconnectingWebSocket(`ws://${address}:${port}/noble`, [], { WebSocket: WebSocket });
+    var str_array = address.split(',');
+    str_array.forEach((element) => this.ws.push(new ReconnectingWebSocket(`ws://${element}:${port}/noble`, [], { WebSocket: WebSocket })));
+
+    //this.ws = new ReconnectingWebSocket(`ws://${address}:${port}/noble`, [], { WebSocket: WebSocket });
 
     this.on('message', this.onMessage.bind(this));
 
-    this.ws.onopen = this.onOpen.bind(this);
-    this.ws.onclose = this.onClose.bind(this);
-    this.ws.onerror = this.onClose.bind(this);
-
-    this.ws.onmessage = (event: any) => {
-      try {
-        if (process.env.WEBSOCKET_DEBUG == "1") {
-          console.log("Received: " + chalk.green(event.data.toString()));
-        }
-        this.emit('message', JSON.parse(event.data.toString()));
-      } catch (error) {
-        console.error(error);
+      this.ws.forEach((element) => element.onopen = this.onOpen.bind(this));
+      this.ws.forEach((element) => element.onclose = this.onClose.bind(this));
+      this.ws.forEach((element) => element.onerror = this.onClose.bind(this));
+    //this.ws.onopen = this.onOpen.bind(this);
+    //this.ws.onclose = this.onClose.bind(this);
+    //this.ws.onerror = this.onClose.bind(this);
+      this.ws.forEach((element) => element.onmessage = (event: any) => {
+          try {
+              if (process.env.WEBSOCKET_DEBUG == "1") {
+                  console.log("Received: " + chalk.green(event.data.toString()));
+              }
+              this.emit('message', JSON.parse(event.data.toString()));
+          } catch (error) {
+              console.error(error);
+          }
       }
-    };
+      );
+    //this.ws.onmessage = (event: any) => {
+    //  try {
+    //    if (process.env.WEBSOCKET_DEBUG == "1") {
+    //      console.log("Received: " + chalk.green(event.data.toString()));
+    //    }
+    //    this.emit('message', JSON.parse(event.data.toString()));
+    //  } catch (error) {
+    //    console.error(error);
+    //  }
+    //};
   }
 
   init() {
@@ -246,8 +262,9 @@ export class NobleWebsocketBinding extends EventEmitter {
       }
       this.buffer.push(command);
     } else {
-      const message = JSON.stringify(command);
-      this.ws.send(message);
+        const message = JSON.stringify(command);
+        this.ws.forEach((element) => element.send(message));
+      //this.ws.send(message);
       if (process.env.WEBSOCKET_DEBUG == "1") {
         console.log("Sent:    " + chalk.cyan(message));
       }
