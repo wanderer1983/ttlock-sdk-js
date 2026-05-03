@@ -154,19 +154,19 @@ export class NobleWebsocketBinding extends EventEmitter {
 
     if (type === "auth") {
       // send authentication response
-      //if (typeof event.challenge != "undefined" && event.challenge.length == 32) {
-      //  const challenge = CryptoJS.enc.Hex.parse(event.challenge);
-      //  const response = CryptoJS.AES.encrypt(this.credentials, this.aesKey, {
-      //    iv: challenge,
-      //    mode: CryptoJS.mode.CBC,
-      //    padding: CryptoJS.pad.ZeroPadding
-      //  });
+      if (typeof event.challenge != "undefined" && event.challenge.length == 32) {
+        const challenge = CryptoJS.enc.Hex.parse(event.challenge);
+        const response = CryptoJS.AES.encrypt(this.credentials, this.aesKey, {
+          iv: challenge,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.ZeroPadding
+        });
 
-      //  this.sendCommand({
-      //    action: "auth",
-      //    response: response.toString(CryptoJS.format.Hex)
-      //  });
-      this.auth = true;
+        this.sendCommand({
+          action: "auth",
+          response: response.toString(CryptoJS.format.Hex)
+        });
+      
       }
     } else if (type === 'stateChange') {
       if (state == "poweredOn" && !this.auth) {
